@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stocks Dashboard</title>
+  <style>
+    /* Base Styles */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      --trade-blue: #1E40AF;
+      --trade-light-blue: #60A5FA;
+      --trade-dark: #111827;
+      --trade-gray: #F3F4F6;
+      --trade-light: #FFFFFF;
+      --trade-green: #10B981;
+      --trade-red: #EF4444;
+      --trade-highlight: #3B82F6;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F9FAFB;
+      color: #111827;
+    }
+    
+    /* Layout */
+    .dashboard {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background-color: white;
+      border-right: 1px solid #E5E7EB;
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .logo-circle {
+      height: 32px;
+      width: 32px;
+      border-radius: 50%;
+      background-color: var(--trade-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--trade-dark);
+    }
+    
+    .nav-links {
+      list-style: none;
+      margin-bottom: auto;
+    }
+    
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      color: #6B7280;
+      font-weight: 500;
+      transition: all 0.2s;
+      margin-bottom: 0.25rem;
+      cursor: pointer;
+    }
+    
+    .nav-link:hover {
+      background-color: #F3F4F6;
+      color: var(--trade-blue);
+    }
+    
+    .nav-link.active {
+      background-color: #EBF5FF;
+      color: var(--trade-blue);
+    }
+    
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      margin-top: 1.5rem;
+      border-top: 1px solid #E5E7EB;
+      padding-top: 1.5rem;
+    }
+    
+    .user-avatar {
+      height: 32px;
+      width: 32px;
+      border-radius: 50%;
+      background-color: #E5E7EB;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+    
+    .user-info {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .user-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .user-status {
+      font-size: 0.75rem;
+      color: #6B7280;
+    }
+    
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+    }
+    
+    .stock-container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    
+    .page-header {
+      margin-bottom: 1.5rem;
+    }
+    
+    .page-title {
+      font-size: 1.875rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    
+    .page-subtitle {
+      color: #6B7280;
+    }
+    
+    /* API Status */
+    .api-status {
+      display: flex;
+      align-items: center;
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      border-radius: 0.375rem;
+      padding: 0.5rem;
+    }
+    
+    .api-status-icon {
+      margin-right: 0.5rem;
+    }
+    
+    .api-status.loading {
+      color: #6B7280;
+      background-color: #F3F4F6;
+    }
+    
+    .api-status.success {
+      color: #10B981;
+      background-color: #ECFDF5;
+    }
+    
+    .api-status.error {
+      color: #F59E0B;
+      background-color: #FFFBEB;
+    }
+    
+    .retry-button {
+      margin-left: 0.5rem;
+      background-color: #3B82F6;
+      color: white;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .retry-button:hover {
+      background-color: #2563EB;
+    }
+    
+    /* Search and Filters */
+    .search-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .search-container {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6B7280;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 0.625rem 1rem 0.625rem 2.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid #E5E7EB;
+      background-color: white;
+      font-size: 0.875rem;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: var(--trade-highlight);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+    
+    .category-filter {
+      display: flex;
+      overflow-x: auto;
+      gap: 0.5rem;
+      padding-bottom: 0.25rem;
+    }
+    
+    .category-button {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      border: 1px solid #E5E7EB;
+      background-color: white;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #6B7280;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    
+    .category-button:hover {
+      background-color: #F9FAFB;
+    }
+    
+    .category-button.active {
+      background-color: var(--trade-blue);
+      color: white;
+      border-color: var(--trade-blue);
+    }
+    
+    /* Stock Table */
+    .stock-table-container {
+      background-color: white;
+      border-radius: 0.75rem;
+      border: 1px solid #E5E7EB;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+    
+    .stock-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .stock-table th {
+      text-align: left;
+      padding: 1rem 1.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #4B5563;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    
+    .stock-table td {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    
+    .stock-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .sort-button {
+      display: flex;
+      align-items: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #4B5563;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    
+    .sort-button svg {
+      margin-left: 0.25rem;
+      transition: transform 0.2s;
+    }
+    
+    .sort-button.desc svg {
+      transform: rotate(180deg);
+    }
+    
+    .stock-row {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .stock-row:hover {
+      background-color: #F9FAFB;
+    }
+    
+    .stock-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .stock-logo {
+      height: 2.5rem;
+      width: 2.5rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #F3F4F6;
+      font-weight: 600;
+    }
+    
+    .stock-name-container {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .stock-name {
+      font-weight: 500;
+    }
+    
+    .stock-ticker {
+      font-size: 0.75rem;
+      color: #6B7280;
+    }
+    
+    .stock-price {
+      font-weight: 600;
+      text-align: right;
+    }
+    
+    .stock-change {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.25rem;
+      font-size: 0.875rem;
+    }
+    
+    .positive {
+      color: var(--trade-green);
+    }
+    
+    .negative {
+      color: var(--trade-red);
+    }
+    
+    .stock-chart {
+      width: 100px;
+      height: 40px;
+    }
+    
+    .empty-message {
+      padding: 2rem;
+      text-align: center;
+      color: #6B7280;
+    }
+    
+    .api-attribution {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #6B7280;
+    }
+    
+    /* Toast notification styles */
+    .toast-container {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .toast {
+      padding: 0.75rem 1rem;
+      border-radius: 0.375rem;
+      background-color: white;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      display: flex;
+      align-items: center;
+      min-width: 16rem;
+      max-width: 24rem;
+      animation: slideIn 0.3s ease-out forwards;
+      border-left: 4px solid #3B82F6;
+    }
+    
+    .toast.success {
+      border-left-color: #10B981;
+    }
+    
+    .toast.error {
+      border-left-color: #EF4444;
+    }
+    
+    .toast.warning {
+      border-left-color: #F59E0B;
+    }
+    
+    .toast.info {
+      border-left-color: #3B82F6;
+    }
+    
+    .toast-icon {
+      margin-right: 0.5rem;
+      flex-shrink: 0;
+    }
+    
+    .toast-message {
+      font-size: 0.875rem;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+    
+    /* Loading Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      border-radius: 0.25rem;
+    }
+    
+    @keyframes loading {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+    
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .dashboard {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        padding: 1rem;
+      }
+      
+      .nav-links {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+      }
+      
+      .nav-link {
+        padding: 0.5rem 0.75rem;
+      }
+      
+      .main-content {
+        padding: 1rem;
+      }
+      
+      .search-filter {
+        flex-direction: column;
+      }
+      
+      .stock-table th:nth-child(4),
+      .stock-table td:nth-child(4) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast-container" class="toast-container"></div>
+  
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-circle">T</div>
+        <span class="logo-text">Trade Plus</span>
+      </div>
+      
+      <ul class="nav-links">
+        <li class="nav-link">
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span class="nav-text">Dashboard</span>
+        </li>
+        <li class="nav-link active">
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg>
+          <span class="nav-text">Stocks</span>
+        </li>
+        <li class="nav-link">
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span class="nav-text">F&O</span>
+        </li>
+        <li class="nav-link">
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 L15.09 8.26 L22 9.27 L17 14.14 L18.18 21.02 L12 17.77 L5.82 21.02 L7 14.14 L2 9.27 L8.91 8.26 L12 2"></path>
+          </svg>
+          <span class="nav-text">Mutual Funds</span>
+        </li>
+        <li class="nav-link">
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          <span class="nav-text">Portfolio</span>
+        </li>
+        <li class="nav-link">
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span class="nav-text">News</span>
+        </li>
+      </ul>
+      
+      <div class="user-profile">
+        <div class="user-avatar">JP</div>
+        <div class="user-info">
+          <span class="user-name">John Patel</span>
+          <span class="user-status">Premium</span>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="stock-container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <h1 class="page-title">Stocks</h1>
+          <p class="page-subtitle">Track and analyze stock performance</p>
+          
+          <div class="api-status loading" id="apiStatus">
+            <svg xmlns="http://www.w3.org/2000/svg" class="api-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 0 1-9 9"></path>
+              <path d="M3 12a9 9 0 0 1 9-9"></path>
+            </svg>
+            <span>Loading stock data...</span>
+          </div>
+        </div>
+        
+        <!-- Search and Filter -->
+        <div class="search-filter">
+          <div class="search-container">
+            <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" class="search-input" id="stockSearch" placeholder="Search by name or symbol...">
+          </div>
+          
+          <div class="category-filter" id="categoryFilter">
+            <button class="category-button active" data-category="All Stocks">All Stocks</button>
+            <button class="category-button" data-category="Technology">Technology</button>
+            <button class="category-button" data-category="Healthcare">Healthcare</button>
+            <button class="category-button" data-category="Finance">Finance</button>
+            <button class="category-button" data-category="Consumer">Consumer</button>
+            <button class="category-button" data-category="Energy">Energy</button>
+          </div>
+        </div>
+        
+        <!-- Stock Table -->
+        <div class="stock-table-container">
+          <table class="stock-table" id="stockTable">
+            <thead>
+              <tr>
+                <th>
+                  <button class="sort-button" data-sort="name">
+                    Stock
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                  </button>
+                </th>
+                <th style="text-align: right;">
+                  <button class="sort-button" data-sort="price">
+                    Price
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                  </button>
+                </th>
+                <th style="text-align: right;">
+                  <button class="sort-button" data-sort="change">
+                    Change
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                  </button>
+                </th>
+                <th style="text-align: right;">Chart</th>
+              </tr>
+            </thead>
+            <tbody id="stockTableBody">
+              <!-- Stock rows will be generated dynamically -->
+              <tr>
+                <td colspan="4" class="empty-message">Loading stocks...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- API Attribution -->
+        <div class="api-attribution">
+          Data provided by <a href="https://finance.yahoo.com/" target="_blank" rel="noopener noreferrer">Yahoo Finance</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Stock data state
+      let stockData = [];
+      let filteredStocks = [];
+      let sortField = 'name';
+      let sortOrder = 'asc';
+      let selectedCategory = 'All Stocks';
+      let searchQuery = '';
+      let apiLoaded = false;
+      let isLoading = true;
+      
+      // DOM Elements
+      const apiStatus = document.getElementById('apiStatus');
+      const stockSearch = document.getElementById('stockSearch');
+      const categoryButtons = document.querySelectorAll('.category-button');
+      const sortButtons = document.querySelectorAll('.sort-button');
+      const stockTableBody = document.getElementById('stockTableBody');
+      const toastContainer = document.getElementById('toast-container');
+      
+      // Stock data with fallback values
+      const fallbackStocks = [
+        {
+          id: '1',
+          name: 'Apple Inc.',
+          ticker: 'AAPL',
+          price: 172.62,
+          change: 1.23,
+          logo: 'A',
+          chartData: [150, 152, 159, 155, 160, 165, 169, 172],
+          category: 'Technology'
+        },
+        {
+          id: '2',
+          name: 'Microsoft',
+          ticker: 'MSFT',
+          price: 413.64,
+          change: 0.87,
+          logo: 'M',
+          chartData: [390, 395, 405, 410, 408, 415, 412, 414],
+          category: 'Technology'
+        },
+        {
+          id: '3',
+          name: 'Google',
+          ticker: 'GOOGL',
+          price: 139.68,
+          change: -0.32,
+          logo: 'G',
+          chartData: [142, 140, 138, 141, 139, 137, 140, 139],
+          category: 'Technology'
+        },
+        {
+          id: '4',
+          name: 'Amazon',
+          ticker: 'AMZN',
+          price: 176.85,
+          change: 1.86,
+          logo: 'A',
+          chartData: [165, 168, 172, 170, 174, 173, 177, 177],
+          category: 'Consumer'
+        },
+        {
+          id: '5',
+          name: 'Tesla',
+          ticker: 'TSLA',
+          price: 177.40,
+          change: -2.15,
+          logo: 'T',
+          chartData: [185, 183, 180, 179, 176, 178, 177, 177],
+          category: 'Consumer'
+        },
+        {
+          id: '6',
+          name: 'JPMorgan Chase',
+          ticker: 'JPM',
+          price: 195.70,
+          change: 0.45,
+          logo: 'J',
+          chartData: [192, 193, 195, 194, 196, 195, 196, 196],
+          category: 'Finance'
+        },
+        {
+          id: '7',
+          name: 'Pfizer Inc.',
+          ticker: 'PFE',
+          price: 28.79,
+          change: -0.69,
+          logo: 'P',
+          chartData: [29.5, 29.2, 29.0, 28.7, 28.9, 28.6, 28.8, 28.7],
+          category: 'Healthcare'
+        },
+        {
+          id: '8',
+          name: 'Exxon Mobil',
+          ticker: 'XOM',
+          price: 115.63,
+          change: 1.49,
+          logo: 'X',
+          chartData: [112, 113, 114, 113.5, 115, 114.5, 115.5, 116],
+          category: 'Energy'
+        },
+        {
+          id: '9',
+          name: 'Adidas',
+          ticker: 'ADDYY',
+          price: 118.65,
+          change: 0.22,
+          logo: 'A',
+          chartData: [117, 117.5, 118, 118.2, 118.7, 118.4, 118.6, 118.7],
+          category: 'Consumer'
+        }
+      ];
+      
+      // Initialize stocks with fallback data
+      stockData = [...fallbackStocks];
+      filteredStocks = [...fallbackStocks];
+      
+      // Toast notification system
+      function showToast(message, type = 'info', duration = 5000) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let iconSvg = '';
+        switch(type) {
+          case 'success':
+            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+            break;
+          case 'error':
+            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+            break;
+          case 'warning':
+            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+            break;
+          default:
+            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+        }
+        
+        toast.innerHTML = `
+          ${iconSvg}
+          <span class="toast-message">${message}</span>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        // Remove toast after duration
+        setTimeout(() => {
+          toast.style.animation = 'slideOut 0.3s forwards';
+          setTimeout(() => {
+            toastContainer.removeChild(toast);
+          }, 300);
+        }, duration);
+      }
+      
+      // Update API status UI
+      function updateApiStatus(status, message) {
+        apiStatus.className = `api-status ${status}`;
+        
+        let iconSvg = '';
+        switch(status) {
+          case 'loading':
+            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" class="api-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>';
+            break;
+          case 'success':
+            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" class="api-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+            break;
+          case 'error':
+            iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" class="api-status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+            break;
+        }
+        
+        apiStatus.innerHTML = `
+          ${iconSvg}
+          <span>${message}</span>
+          ${status === 'error' ? '<button id="retryButton" class="retry-button"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 2px;"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>Retry</button>' : ''}
+        `;
+        
+        // Re-attach event listener if the button was recreated
+        if (status === 'error') {
+          document.getElementById('retryButton').addEventListener('click', loadStockData);
+        }
+      }
+      
+      // Create a stock chart SVG
+      function createStockChart(data, isPositive, width = 100, height = 40) {
+        // If no chart data, return empty SVG
+        if (!data || data.length === 0) {
+          return `<svg width="${width}" height="${height}"></svg>`;
+        }
+        
+        const min = Math.min(...data);
+        const max = Math.max(...data);
+        const range = max - min || 1;
+        
+        // Create points for the line
+        const points = data.map((value, index) => {
+          const x = index * (width / (data.length - 1));
+          const y = height - ((value - min) / range) * height;
+          return `${x},${y}`;
+        }).join(' L ');
+        
+        return `
+          <svg width="${width}" height="${height}" class="stock-chart">
+            <path
+              d="M ${points}"
+              fill="none"
+              stroke="${isPositive ? '#10B981' : '#EF4444'}"
+              stroke-width="2"
+            />
+          </svg>
+        `;
+      }
+      
+      // Render the stock table
+      function renderStockTable() {
+        if (isLoading) {
+          stockTableBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="empty-message">
+                <div class="skeleton" style="height: 200px; width: 100%;"></div>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+        
+        // Filter stocks based on search and category
+        filterStocks();
+        
+        // Sort stocks
+        sortStocks();
+        
+        // Render the table rows
+        if (filteredStocks.length === 0) {
+          stockTableBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="empty-message">No stocks found matching your criteria</td>
+            </tr>
+          `;
+          return;
+        }
+        
+        stockTableBody.innerHTML = filteredStocks.map(stock => {
+          const isPositive = stock.change >= 0;
+          return `
+            <tr class="stock-row">
+              <td>
+                <div class="stock-info">
+                  <div class="stock-logo">${stock.logo}</div>
+                  <div class="stock-name-container">
+                    <div class="stock-name">${stock.name}</div>
+                    <div class="stock-ticker">${stock.ticker}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="stock-price">$${stock.price.toFixed(2)}</td>
+              <td>
+                <div class="stock-change ${isPositive ? 'positive' : 'negative'}">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    ${isPositive 
+                      ? '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline>' 
+                      : '<polyline points="22 17 13.5 8.5 8.5 13.5 2 7"></polyline><polyline points="16 17 22 17 22 11"></polyline>'}
+                  </svg>
+                  ${Math.abs(stock.change).toFixed(2)}%
+                </div>
+              </td>
+              <td>${createStockChart(stock.chartData, isPositive)}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+      
+      // Filter stocks based on search and category
+      function filterStocks() {
+        filteredStocks = stockData.filter(stock => {
+          const matchesSearch = 
+            stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            stock.ticker.toLowerCase().includes(searchQuery.toLowerCase());
+            
+          const matchesCategory = 
+            selectedCategory === 'All Stocks' || 
+            stock.category === selectedCategory;
+            
+          return matchesSearch && matchesCategory;
+        });
+      }
+      
+      // Sort stocks based on current sort field and order
+      function sortStocks() {
+        filteredStocks.sort((a, b) => {
+          if (sortField === 'name') {
+            return sortOrder === 'asc' 
+              ? a.name.localeCompare(b.name) 
+              : b.name.localeCompare(a.name);
+          } else if (sortField === 'price') {
+            return sortOrder === 'asc' ? a.price - b.price : b.price - a.price;
+          } else if (sortField === 'change') {
+            return sortOrder === 'asc' ? a.change - b.change : b.change - a.change;
+          }
+          return 0;
+        });
+      }
+      
+      // Fetch stock data from Yahoo Finance API
+      async function fetchStockData(symbol) {
+        try {
+          console.log(`Fetching stock data for ${symbol}...`);
+          
+          // Yahoo Finance API endpoint
+          const apiUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
+          console.log("API URL:", apiUrl);
+          
+          const response = await fetch(apiUrl, {
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`API responded with status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          console.log(`Response for ${symbol}:`, data);
+          
+          // Check for error response or empty data
+          if (!data.chart || !data.chart.result || data.chart.result.length === 0) {
+            throw new Error("Failed to fetch stock data");
+          }
+          
+          const result = data.chart.result[0];
+          const meta = result.meta;
+          const quote = result.indicators.quote[0];
+          const lastIndex = quote.close.length - 1;
+          
+          const currentPrice = meta.regularMarketPrice || quote.close[lastIndex];
+          const previousClose = meta.previousClose || meta.chartPreviousClose;
+          const changePercent = ((currentPrice - previousClose) / previousClose) * 100;
+          
+          return {
+            symbol: symbol,
+            price: currentPrice,
+            change: changePercent
+          };
+        } catch (error) {
+          console.error(`Error fetching data for ${symbol}:`, error);
+          throw error;
+        }
+      }
+      
+      // Fetch historical stock data from Yahoo Finance API
+      async function fetchStockHistory(symbol) {
+        try {
+          console.log(`Fetching historical data for ${symbol}...`);
+          
+          // Yahoo Finance API for 1 month of daily data
+          const interval = '1d';
+          const range = '1mo';
+          const apiUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${interval}&range=${range}`;
+          console.log("History API URL:", apiUrl);
+          
+          const response = await fetch(apiUrl, {
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`API responded with status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          // Check for error response
+          if (!data.chart || !data.chart.result || data.chart.result.length === 0) {
+            throw new Error("Failed to fetch historical data");
+          }
+          
+          const result = data.chart.result[0];
+          const quotes = result.indicators.quote[0];
+          
+          // Get closing prices, filtering out null values
+          const closePrices = quotes.close
+            .filter((price) => price !== null)
+            .slice(-10); // Get only last 10 days
+          
+          return closePrices;
+        } catch (error) {
+          console.error(`Error fetching history for ${symbol}:`, error);
+          throw error;
+        }
+      }
+      
+      // Load real-time stock data
+      async function loadStockData() {
+        const symbols = stockData.map(stock => stock.ticker);
+        let successCount = 0;
+        
+        isLoading = true;
+        updateApiStatus('loading', 'Loading real-time data...');
+        renderStockTable();
+        
+        try {
+          // Process stocks one by one to avoid rate limits (Yahoo Finance might block multiple simultaneous requests)
+          for (const symbol of symbols) {
+            try {
+              // Fetch real-time data
+              const realTimeData = await fetchStockData(symbol);
+              
+              // Find stock index
+              const stockIndex = stockData.findIndex(stock => 
+                stock.ticker === symbol
+              );
+              
+              if (stockIndex !== -1) {
+                // Update stock with real-time data
+                stockData[stockIndex].price = realTimeData.price;
+                stockData[stockIndex].change = realTimeData.change;
+                
+                // Try to fetch historical data for chart
+                try {
+                  const historyData = await fetchStockHistory(symbol);
+                  if (historyData && historyData.length > 0) {
+                    stockData[stockIndex].chartData = historyData;
+                  }
+                } catch (historyError) {
+                  console.warn(`Could not fetch history for ${symbol}:`, historyError);
+                  // Keep existing chart data
+                }
+                
+                successCount++;
+              }
+              
+              // Small delay to avoid overwhelming the API
+              await new Promise(resolve => setTimeout(resolve, 300));
+              
+            } catch (error) {
+              console.error(`Failed to load ${symbol}:`, error);
+            }
+          }
+          
+          isLoading = false;
+          
+          // Update status based on results
+          if (successCount > 0) {
+            apiLoaded = true;
+            if (successCount < symbols.length) {
+              showToast(`Loaded ${successCount} of ${symbols.length} stocks. Some data couldn't be updated.`, 'warning');
+              updateApiStatus('success', 'Partial real-time data loaded');
+            } else {
+              showToast('Successfully loaded all real-time stock data', 'success');
+              updateApiStatus('success', 'Using real-time market data');
+            }
+          } else {
+            throw new Error('Failed to load any stock data');
+          }
+        } catch (error) {
+          console.error('Error loading stock data:', error);
+          
+          isLoading = false;
+          apiLoaded = false;
+          
+          showToast('Failed to load real-time data. Using fallback data.', 'error');
+          updateApiStatus('error', 'Using fallback data. Real-time data not available.');
+        }
+        
+        renderStockTable();
+      }
+      
+      // Event listener for search input
+      stockSearch.addEventListener('input', function() {
+        searchQuery = this.value.trim();
+        renderStockTable();
+      });
+      
+      // Event listeners for category buttons
+      categoryButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          categoryButtons.forEach(btn => btn.classList.remove('active'));
+          this.classList.add('active');
+          
+          selectedCategory = this.dataset.category;
+          renderStockTable();
+        });
+      });
+      
+      // Event listeners for sort buttons
+      sortButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const field = this.dataset.sort;
+          
+          if (sortField === field) {
+            sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortField = field;
+            sortOrder = 'asc';
+          }
+          
+          // Update button appearance
+          sortButtons.forEach(btn => {
+            btn.classList.remove('asc', 'desc');
+          });
+          
+          this.classList.add(sortOrder);
+          
+          renderStockTable();
+        });
+      });
+      
+      // Initialize the page
+      renderStockTable();
+      loadStockData();
+    });
+  </script>
+</body>
+</html>

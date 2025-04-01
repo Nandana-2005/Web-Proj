@@ -236,10 +236,11 @@
                 <input type="text" id="search" placeholder="Search for stock market... " class="search-bar" onkeyup="searchNews()"/>
     
                 <div class="filters">
-                  <button class="active" onclick="filterNews(this, 'general')">All News</button>
-                  <button onclick="filterNews(this, 'business')">Economy</button>
-                  <button onclick="filterNews(this, 'technology')">Technology</button>
-                  <button onclick="filterNews(this, 'health')">Healthcare</button>
+                  <button class="active" onclick="filterNews(this, 'general')">General</button>
+                  <button onclick="filterNews(this, 'forex')">Economy</button>
+                  <button onclick="filterNews(this, 'crypto')">Crypto Technology</button>
+                  <button onclick="filterNews(this, 'merger')">Merger</button>
+                  <button onclick="filterNews(this, 'earning')">Earning</button>
                 </div>
     
                 <div class="news-container" id="news-container">
@@ -252,24 +253,19 @@
     </div>
   </body>
   <script>
+    const API_KEY = "cvlotbhr01qj3umennngcvlotbhr01qj3umenno0";  // Replace with your Finnhub API key
+    const categories = ["general", "forex", "crypto", "merger", "earning"];  // Example categories
 
-    const API_KEY = "394f8424565049dcbf62f079a67edad3";  
-    const COUNTRY = "us"; 
-    const categories = ["business", "health", "technology"]; 
 
-    async function fetchNews(category = "all") {
-        let url = `https://newsapi.org/v2/top-headlines?country=${COUNTRY}&apiKey=${API_KEY}`;
-
-        if (category !== "all") {
-            url += `&category=${category.toLowerCase()}`;  
-        }
+    async function fetchNews(category = "general") {
+        const url = `https://finnhub.io/api/v1/news?category=${category}&token=${API_KEY}`;
 
         try {
             const response = await fetch(url);
             const data = await response.json();
 
-            if (data.articles) {
-                displayNews(data.articles, category);
+            if (data.length > 0) {
+                displayNews(data, category);
             } else {
                 console.error("No news found", data);
             }
@@ -278,9 +274,10 @@
         }
     }
 
+
     function displayNews(articles, category) {
         const newsContainer = document.getElementById("news-container");
-        newsContainer.innerHTML = ""; 
+        newsContainer.innerHTML = ""; // Clear existing news
 
         articles.forEach((article) => {
             const newsItem = document.createElement("div");
@@ -288,11 +285,11 @@
             newsItem.setAttribute("data-category", category);
 
             newsItem.innerHTML = `
-                <img src="${article.urlToImage || 'https://via.placeholder.com/300'}" alt="${category}">
+                <img src="${article.image || 'https://via.placeholder.com/300'}" alt="${category}">
                 <div class="news-content">
                     <p class="category">${category}</p>
-                    <h2>${article.title}</h2>
-                    <p class="description">${article.description || "No description available"}</p>
+                    <h2>${article.headline}</h2>
+                    <p class="description">${article.summary || "No description available"}</p>
                     <a href="${article.url}" target="_blank">Read more</a>
                 </div>
             `;
@@ -301,12 +298,14 @@
         });
     }
 
+
     
     function filterNews(button, category) {
-        document.querySelectorAll('.filters button').forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-        fetchNews(category);
+    document.querySelectorAll('.filters button').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+    fetchNews(category);
     }
+
 
     
     function searchNews() {
@@ -325,6 +324,5 @@
 
     
     fetchNews();
-
 </script>
 </html>
